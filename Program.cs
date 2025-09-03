@@ -1,4 +1,7 @@
 
+using Microsoft.EntityFrameworkCore;
+using nauth_asp.DbContexts;
+
 namespace nauth_asp
 {
     public class Program
@@ -7,8 +10,15 @@ namespace nauth_asp
         {
             var builder = WebApplication.CreateBuilder(args);
 
-
+            // Add services to the container
             builder.Services.AddControllers();
+            
+            // Add DbContext
+            builder.Services.AddDbContext<NauthDbContext>(options =>
+                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+            
+            // Add AutoMapper
+            builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(Program)));
             
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
@@ -22,7 +32,6 @@ namespace nauth_asp
             }
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 
