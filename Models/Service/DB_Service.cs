@@ -1,8 +1,6 @@
 ﻿using nauth_asp.Helpers;
-using nauth_asp.Models.Permissions;
-using nauth_asp.Models.Session;
 
-namespace nauth_asp.Models.Service
+namespace nauth_asp.Models
 {
     public class DB_Service
     {
@@ -10,7 +8,7 @@ namespace nauth_asp.Models.Service
 
         public string name { get; set; } = string.Empty;
 
-        public long userId { get; set; } = -1;
+        public long? userId { get; set; } = null;
         public virtual DB_User? user { get; set; } = null;
 
         public virtual List<DB_Session>? sessions { get; set; } = new();

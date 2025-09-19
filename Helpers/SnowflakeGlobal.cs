@@ -1,5 +1,4 @@
-﻿using System.Reflection.Emit;
-using IdGen;
+﻿using IdGen;
 
 namespace nauth_asp.Helpers
 {

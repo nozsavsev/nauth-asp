@@ -1,7 +1,6 @@
 ﻿using nauth_asp.Helpers;
-using nauth_asp.Models.Service;
 
-namespace nauth_asp.Models.Permissions
+namespace nauth_asp.Models
 {
     public class DB_Permission
     {
@@ -12,6 +11,8 @@ namespace nauth_asp.Models.Permissions
 
         public long ServiceId { get; set; } = 0;
         public virtual DB_Service? Service { get; set; } = null;
+
+        public virtual List<DB_UserPermission> UserPermissions { get; set; } = new();
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

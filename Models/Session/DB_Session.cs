@@ -1,7 +1,6 @@
 ﻿using nauth_asp.Helpers;
-using nauth_asp.Models.Service;
 
-namespace nauth_asp.Models.Session
+namespace nauth_asp.Models
 {
     public class DB_Session
     {
@@ -21,5 +20,12 @@ namespace nauth_asp.Models.Session
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        public string IpAddress { get; set; } = string.Empty;
+
+        public string Device { get; set; } = "unknown";
+
+        public string Browser { get; set; } = "unknown";
+
+        public string Os { get; set; } = "unknown";
     }
 }

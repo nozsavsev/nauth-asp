@@ -17,12 +17,12 @@ namespace nauth_asp.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.16")
+                .HasAnnotation("ProductVersion", "9.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("nauth_asp.Models.DB_User", b =>
+            modelBuilder.Entity("nauth_asp.Models.DB_2FAEntry", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -33,31 +33,33 @@ namespace nauth_asp.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("email")
+                    b.Property<string>("_2faSecret")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("isActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("name")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
-                    b.Property<bool>("isEmailVerified")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("passwordHash")
+                    b.Property<string>("recoveryCode")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("passwordSalt")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<long>("userId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("email")
-                        .IsUnique();
+                    b.HasIndex("userId");
 
-                    b.ToTable("Users");
+                    b.ToTable("TwoFactorAuthEntries");
                 });
 
-            modelBuilder.Entity("nauth_asp.Models.EmailAction.DB_EmailAction", b =>
+            modelBuilder.Entity("nauth_asp.Models.DB_EmailAction", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -67,9 +69,6 @@ namespace nauth_asp.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<long?>("DB_UserId")
-                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
@@ -81,17 +80,61 @@ namespace nauth_asp.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("Id");
+                    b.Property<int>("type")
+                        .HasColumnType("integer");
 
-                    b.HasIndex("DB_UserId");
+                    b.Property<long>("userId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("token")
                         .IsUnique();
 
+                    b.HasIndex("userId");
+
                     b.ToTable("EmailActions");
                 });
 
-            modelBuilder.Entity("nauth_asp.Models.Permissions.DB_Permission", b =>
+            modelBuilder.Entity("nauth_asp.Models.DB_EmailTemplate", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("HtmlBody")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("isActive")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EmailTemplates");
+                });
+
+            modelBuilder.Entity("nauth_asp.Models.DB_Permission", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -125,7 +168,122 @@ namespace nauth_asp.Migrations
                     b.ToTable("Permissions");
                 });
 
-            modelBuilder.Entity("nauth_asp.Models.Permissions.DB_UserPermission", b =>
+            modelBuilder.Entity("nauth_asp.Models.DB_Service", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<long?>("userId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("userId");
+
+                    b.ToTable("Services");
+                });
+
+            modelBuilder.Entity("nauth_asp.Models.DB_Session", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Browser")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Device")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("IpAddress")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Os")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("is2FAConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("jwtHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long?>("serviceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("userId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("serviceId");
+
+                    b.HasIndex("userId");
+
+                    b.ToTable("Sessions");
+                });
+
+            modelBuilder.Entity("nauth_asp.Models.DB_User", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AvatarURL")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<string>("email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<bool>("isEmailVerified")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("isEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("passwordHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("email")
+                        .IsUnique();
+
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("nauth_asp.Models.DB_UserPermission", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -152,139 +310,31 @@ namespace nauth_asp.Migrations
                     b.ToTable("UserPermissions");
                 });
 
-            modelBuilder.Entity("nauth_asp.Models.Service.DB_Service", b =>
+            modelBuilder.Entity("nauth_asp.Models.DB_2FAEntry", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                    b.HasOne("nauth_asp.Models.DB_User", "user")
+                        .WithMany("_2FAEntries")
+                        .HasForeignKey("userId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
-
-                    b.Property<long>("userId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("userId");
-
-                    b.ToTable("Services");
+                    b.Navigation("user");
                 });
 
-            modelBuilder.Entity("nauth_asp.Models.Service.DB_UserService", b =>
+            modelBuilder.Entity("nauth_asp.Models.DB_EmailAction", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<long>("serviceId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("userId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("serviceId");
-
-                    b.HasIndex("userId", "serviceId")
-                        .IsUnique();
-
-                    b.ToTable("UserServices");
-                });
-
-            modelBuilder.Entity("nauth_asp.Models.Session.DB_Session", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("is2FAConfirmed")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("jwtHash")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<long?>("serviceId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("userId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("serviceId");
-
-                    b.HasIndex("userId");
-
-                    b.ToTable("Sessions");
-                });
-
-            modelBuilder.Entity("nauth_asp.Models.TwoFactorAuth.DB_2FAEntry", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("_2faSecret")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
-
-                    b.Property<string>("recoveryCode")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<long>("userId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("userId");
-
-                    b.ToTable("TwoFactorAuthEntries");
-                });
-
-            modelBuilder.Entity("nauth_asp.Models.EmailAction.DB_EmailAction", b =>
-                {
-                    b.HasOne("nauth_asp.Models.DB_User", null)
+                    b.HasOne("nauth_asp.Models.DB_User", "User")
                         .WithMany("emailActions")
-                        .HasForeignKey("DB_UserId");
+                        .HasForeignKey("userId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
-            modelBuilder.Entity("nauth_asp.Models.Permissions.DB_Permission", b =>
+            modelBuilder.Entity("nauth_asp.Models.DB_Permission", b =>
                 {
-                    b.HasOne("nauth_asp.Models.Service.DB_Service", "Service")
+                    b.HasOne("nauth_asp.Models.DB_Service", "Service")
                         .WithMany("permissions")
                         .HasForeignKey("ServiceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -293,58 +343,19 @@ namespace nauth_asp.Migrations
                     b.Navigation("Service");
                 });
 
-            modelBuilder.Entity("nauth_asp.Models.Permissions.DB_UserPermission", b =>
+            modelBuilder.Entity("nauth_asp.Models.DB_Service", b =>
                 {
-                    b.HasOne("nauth_asp.Models.Permissions.DB_Permission", "permission")
-                        .WithMany()
-                        .HasForeignKey("permissionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("nauth_asp.Models.DB_User", "user")
-                        .WithMany("permissions")
+                        .WithMany("Services")
                         .HasForeignKey("userId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("permission");
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("user");
                 });
 
-            modelBuilder.Entity("nauth_asp.Models.Service.DB_Service", b =>
+            modelBuilder.Entity("nauth_asp.Models.DB_Session", b =>
                 {
-                    b.HasOne("nauth_asp.Models.DB_User", "user")
-                        .WithMany("ownedServices")
-                        .HasForeignKey("userId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("user");
-                });
-
-            modelBuilder.Entity("nauth_asp.Models.Service.DB_UserService", b =>
-                {
-                    b.HasOne("nauth_asp.Models.Service.DB_Service", "service")
-                        .WithMany()
-                        .HasForeignKey("serviceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("nauth_asp.Models.DB_User", "user")
-                        .WithMany("services")
-                        .HasForeignKey("userId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("service");
-
-                    b.Navigation("user");
-                });
-
-            modelBuilder.Entity("nauth_asp.Models.Session.DB_Session", b =>
-                {
-                    b.HasOne("nauth_asp.Models.Service.DB_Service", "service")
+                    b.HasOne("nauth_asp.Models.DB_Service", "service")
                         .WithMany("sessions")
                         .HasForeignKey("serviceId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -360,34 +371,45 @@ namespace nauth_asp.Migrations
                     b.Navigation("user");
                 });
 
-            modelBuilder.Entity("nauth_asp.Models.TwoFactorAuth.DB_2FAEntry", b =>
+            modelBuilder.Entity("nauth_asp.Models.DB_UserPermission", b =>
                 {
+                    b.HasOne("nauth_asp.Models.DB_Permission", "permission")
+                        .WithMany("UserPermissions")
+                        .HasForeignKey("permissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("nauth_asp.Models.DB_User", "user")
-                        .WithMany("_2FAEntries")
+                        .WithMany("permissions")
                         .HasForeignKey("userId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("permission");
+
                     b.Navigation("user");
                 });
 
-            modelBuilder.Entity("nauth_asp.Models.DB_User", b =>
+            modelBuilder.Entity("nauth_asp.Models.DB_Permission", b =>
                 {
-                    b.Navigation("_2FAEntries");
+                    b.Navigation("UserPermissions");
+                });
 
-                    b.Navigation("emailActions");
-
-                    b.Navigation("ownedServices");
-
+            modelBuilder.Entity("nauth_asp.Models.DB_Service", b =>
+                {
                     b.Navigation("permissions");
-
-                    b.Navigation("services");
 
                     b.Navigation("sessions");
                 });
 
-            modelBuilder.Entity("nauth_asp.Models.Service.DB_Service", b =>
+            modelBuilder.Entity("nauth_asp.Models.DB_User", b =>
                 {
+                    b.Navigation("Services");
+
+                    b.Navigation("_2FAEntries");
+
+                    b.Navigation("emailActions");
+
                     b.Navigation("permissions");
 
                     b.Navigation("sessions");

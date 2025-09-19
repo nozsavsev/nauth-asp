@@ -1,10 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using nauth_asp.Models;
-using nauth_asp.Models.TwoFactorAuth;
-using nauth_asp.Models.EmailAction;
-using nauth_asp.Models.Permissions;
-using nauth_asp.Models.Service;
-using nauth_asp.Models.Session;
 
 namespace nauth_asp.DbContexts
 {
@@ -20,9 +15,9 @@ namespace nauth_asp.DbContexts
         public DbSet<DB_Service> Services { get; set; }
         public DbSet<DB_Permission> Permissions { get; set; }
         public DbSet<DB_UserPermission> UserPermissions { get; set; }
-        public DbSet<DB_UserService> UserServices { get; set; }
         public DbSet<DB_2FAEntry> TwoFactorAuthEntries { get; set; }
         public DbSet<DB_EmailAction> EmailActions { get; set; }
+        public DbSet<DB_EmailTemplate> EmailTemplates { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -32,26 +27,31 @@ namespace nauth_asp.DbContexts
             modelBuilder.Entity<DB_User>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+                //entity.Property(e => e.Id).ValueGeneratedOnAdd();
                 entity.Property(e => e.email).IsRequired().HasMaxLength(255);
                 entity.HasIndex(e => e.email).IsUnique();
                 entity.Property(e => e.passwordHash).IsRequired();
-                entity.Property(e => e.passwordSalt).IsRequired();
                 entity.Property(e => e.CreatedAt).IsRequired();
+
+                entity.Navigation(e => e.Services).AutoInclude();
+                entity.Navigation(e => e.sessions).AutoInclude();
+                entity.Navigation(e => e.permissions).AutoInclude();
+                entity.Navigation(e => e._2FAEntries).AutoInclude();
+                entity.Navigation(e => e.emailActions).AutoInclude();
             });
 
             // Service configuration
             modelBuilder.Entity<DB_Service>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+                entity.Property(e => e.Id).ValueGeneratedNever();
                 entity.Property(e => e.name).IsRequired().HasMaxLength(255);
-                entity.Property(e => e.userId).IsRequired();
+                entity.Property(e => e.userId).IsRequired(false);
                 entity.Property(e => e.CreatedAt).IsRequired();
 
                 // Foreign key relationship
                 entity.HasOne(s => s.user)
-                    .WithMany(u => u.ownedServices)
+                    .WithMany(u => u.Services)
                     .HasForeignKey(s => s.userId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
@@ -60,7 +60,7 @@ namespace nauth_asp.DbContexts
             modelBuilder.Entity<DB_Permission>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+                //entity.Property(e => e.Id).ValueGeneratedOnAdd();
                 entity.Property(e => e.name).IsRequired().HasMaxLength(255);
                 entity.Property(e => e.key).IsRequired().HasMaxLength(255);
                 entity.Property(e => e.ServiceId).IsRequired();
@@ -80,7 +80,7 @@ namespace nauth_asp.DbContexts
             modelBuilder.Entity<DB_Session>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+                //entity.Property(e => e.Id).ValueGeneratedOnAdd();
                 entity.Property(e => e.jwtHash).IsRequired();
                 entity.Property(e => e.userId).IsRequired();
                 entity.Property(e => e.serviceId).IsRequired(false);
@@ -104,7 +104,7 @@ namespace nauth_asp.DbContexts
             modelBuilder.Entity<DB_UserPermission>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+                //entity.Property(e => e.Id).ValueGeneratedOnAdd();
                 entity.Property(e => e.permissionId).IsRequired();
                 entity.Property(e => e.userId).IsRequired();
                 entity.Property(e => e.CreatedAt).IsRequired();
@@ -114,7 +114,7 @@ namespace nauth_asp.DbContexts
 
                 // Foreign key relationships
                 entity.HasOne(up => up.permission)
-                    .WithMany()
+                    .WithMany(p => p.UserPermissions)
                     .HasForeignKey(up => up.permissionId)
                     .OnDelete(DeleteBehavior.Cascade);
 
@@ -122,37 +122,15 @@ namespace nauth_asp.DbContexts
                     .WithMany(u => u.permissions)
                     .HasForeignKey(up => up.userId)
                     .OnDelete(DeleteBehavior.Cascade);
-            });
 
-            // UserService configuration
-            modelBuilder.Entity<DB_UserService>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).ValueGeneratedOnAdd();
-                entity.Property(e => e.userId).IsRequired();
-                entity.Property(e => e.serviceId).IsRequired();
-                entity.Property(e => e.CreatedAt).IsRequired();
-
-                // Unique constraint on user-service combination
-                entity.HasIndex(e => new { e.userId, e.serviceId }).IsUnique();
-
-                // Foreign key relationships
-                entity.HasOne(us => us.user)
-                    .WithMany(u => u.services)
-                    .HasForeignKey(us => us.userId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(us => us.service)
-                    .WithMany()
-                    .HasForeignKey(us => us.serviceId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                entity.Navigation(up => up.permission).AutoInclude();
             });
 
             // TwoFactorAuth configuration
             modelBuilder.Entity<DB_2FAEntry>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+                //entity.Property(e => e.Id).ValueGeneratedOnAdd();
                 entity.Property(e => e.name).IsRequired().HasMaxLength(255);
                 entity.Property(e => e.recoveryCode).IsRequired();
                 entity.Property(e => e._2faSecret).IsRequired();
@@ -170,13 +148,18 @@ namespace nauth_asp.DbContexts
             modelBuilder.Entity<DB_EmailAction>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+                //entity.Property(e => e.Id).ValueGeneratedOnAdd();
                 entity.Property(e => e.token).IsRequired();
+
                 entity.Property(e => e.ExpiresAt).IsRequired();
                 entity.Property(e => e.CreatedAt).IsRequired();
 
                 // Index on token for quick lookups
                 entity.HasIndex(e => e.token).IsUnique();
+                entity.HasOne(ea => ea.User)
+                      .WithMany(u => u.emailActions)
+                      .HasForeignKey(ea => ea.userId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }
