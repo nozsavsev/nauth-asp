@@ -1,0 +1,39 @@
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=;Port=;Database=nauth_db;Username=;Password=;"
+  },
+  "Google": {
+    "ClientId": ""
+  },
+  "CorsConfig": "https://nauth.nozsa.com,https://nauth-api.nozsa.com",
+  "Amazon": {
+    "ACCESS_KEY": "",
+    "SECRET_KEY": "",
+    "bucketName": "nauth-emails",
+    "avatarBucketName": "nauth-avatars",
+    "avatarPublicUrl": "https://nauth-avatars.s3.eu-north-1.amazonaws.com",
+    "region": "eu-north-1",
+    "SES_Sender": "auth@nozsa.com",
+    "SES_REGION": "eu-north-1"
+  },
+  "Frontend": {
+    "CookieDomain": "nozsa.dev",
+    "BaseUrl": "https://nauth.nozsa.dev",
+    "EmailVerificationPath": "/auth/verifyEmail",
+    "PasswordResetPath": "/auth/resetPassword",
+    "DeleteAccountPath": "/auth/deleteAccount",
+    "ChangeEmailPath": "/auth/changeEmail"
+  },
+  "JWT": {
+    "Issuer": "nozsa-com",
+    "Audience": "nozsa-com",
+    "secretKey": "",
+    "Cookiekey": "nauth",
+    "expiresAfterDays": 60,
+    "emailActionExpiresMinutes": 15,
+    "emailActionCooldownSeconds": 60
+  },
+  "AutoMapper": {
+    "licenceKey": ""
+  }
+}
