@@ -23,7 +23,24 @@ namespace nauth_asp
     {
         public static async Task Main(string[] args)
         {
-
+            Console.WriteLine(@"
+NNNNNNNN        NNNNNNNN               AAA           UUUUUUUU     UUUUUUUUTTTTTTTTTTTTTTTTTTTTTTTHHHHHHHHH     HHHHHHHHH
+N:::::::N       N::::::N              A:::A          U::::::U     U::::::UT:::::::::::::::::::::TH:::::::H     H:::::::H
+N::::::::N      N::::::N             A:::::A         U::::::U     U::::::UT:::::::::::::::::::::TH:::::::H     H:::::::H
+N:::::::::N     N::::::N            A:::::::A        UU:::::U     U:::::UUT:::::TT:::::::TT:::::THH::::::H     H::::::HH
+N::::::::::N    N::::::N           A:::::::::A        U:::::U     U:::::U TTTTTT  T:::::T  TTTTTT  H:::::H     H:::::H  
+N:::::::::::N   N::::::N          A:::::A:::::A       U:::::D     D:::::U         T:::::T          H:::::H     H:::::H  
+N:::::::N::::N  N::::::N         A:::::A A:::::A      U:::::D     D:::::U         T:::::T          H::::::HHHHH::::::H  
+N::::::N N::::N N::::::N        A:::::A   A:::::A     U:::::D     D:::::U         T:::::T          H:::::::::::::::::H  
+N::::::N  N::::N:::::::N       A:::::A     A:::::A    U:::::D     D:::::U         T:::::T          H:::::::::::::::::H  
+N::::::N   N:::::::::::N      A:::::AAAAAAAAA:::::A   U:::::D     D:::::U         T:::::T          H::::::HHHHH::::::H  
+N::::::N    N::::::::::N     A:::::::::::::::::::::A  U:::::D     D:::::U         T:::::T          H:::::H     H:::::H  
+N::::::N     N:::::::::N    A:::::AAAAAAAAAAAAA:::::A U::::::U   U::::::U         T:::::T          H:::::H     H:::::H  
+N::::::N      N::::::::N   A:::::A             A:::::AU:::::::UUU:::::::U       TT:::::::TT      HH::::::H     H::::::HH
+N::::::N       N:::::::N  A:::::A               A:::::AUU:::::::::::::UU        T:::::::::T      H:::::::H     H:::::::H
+N::::::N        N::::::N A:::::A                 A:::::A UU:::::::::UU          T:::::::::T      H:::::::H     H:::::::H
+NNNNNNNN         NNNNNNNAAAAAAA                   AAAAAAA  UUUUUUUUU            TTTTTTTTTTT      HHHHHHHHH     HHHHHHHHH                                                                                                                     
+");
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Configuration.AddEnvironmentVariables();
