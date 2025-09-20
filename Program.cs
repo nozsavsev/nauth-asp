@@ -23,7 +23,18 @@ namespace nauth_asp
     {
         public static async Task Main(string[] args)
         {
+
+            while(true)
+            {
+                Console.Write($"\r{SnowflakeGlobal.Generate()}");
+                Console.ReadKey();
+            }
+
+
+
             var builder = WebApplication.CreateBuilder(args);
+
+            builder.Configuration.AddEnvironmentVariables();
 
             var jsonSerializerOptions = new JsonSerializerOptions
             {
