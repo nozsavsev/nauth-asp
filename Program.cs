@@ -66,6 +66,8 @@ NNNNNNNN         NNNNNNNAAAAAAA                   AAAAAAA  UUUUUUUUU            
                     }
                 });
 
+            Console.WriteLine(builder.Configuration.GetConnectionString("DefaultConnection"));
+
             // Add DbContext
             builder.Services.AddDbContext<NauthDbContext>(options =>
                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -187,7 +189,7 @@ NNNNNNNN         NNNNNNNAAAAAAA                   AAAAAAA  UUUUUUUUU            
                                var sub = ctx.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
                                var sid = ctx.Principal?.FindFirst("sid")?.Value;
                                var serviceId = ctx.Principal?.FindFirst("serviceId")?.Value;
-                               if (serviceId  == null  && (string.IsNullOrEmpty(sub) || string.IsNullOrEmpty(sid)))
+                               if (serviceId == null && (string.IsNullOrEmpty(sub) || string.IsNullOrEmpty(sid)))
                                {
                                    ctx.Fail("Missing sub or sid");
                                    ctx.HttpContext.AddAuthenticationFailureReason(AuthFailureReasons.SessionExpired);
