@@ -311,28 +311,11 @@ NNNNNNNN         NNNNNNNAAAAAAA                   AAAAAAA  UUUUUUUUU            
                     Console.WriteLine($"401 (Unauthorized) response intercepted on {context.HttpContext.Request.Path}");
 
                     var reasons = context.HttpContext.GetAuthenticationFailureReasons();
-                    if (reasons?.Contains(AuthFailureReasons.SessionExpired) == true)
-                    {
-                        response.Cookies.Delete(config["JWT:Cookiekey"]!);
-                        var cooptions = new CookieOptions { Path = "/", IsEssential = true, HttpOnly = false, Secure = false, Domain = config["Frontend:CookieDomain"] };
-                        response.Cookies.Append("authenticated", "false", cooptions);
-                    }
                     await response.WriteAsync(JsonSerializer.Serialize(new ResponseWrapper<string>(WrResponseStatus.Forbidden, null, reasons), jsonOptions));
                 }
                 else if (response.StatusCode == 401)
                 {
                     Console.WriteLine($"401 (Unauthorized) response intercepted on {context.HttpContext.Request.Path}");
-
-                    response.Cookies.Delete(config["JWT:Cookiekey"]!);
-                    var cooptions = new CookieOptions
-                    {
-                        Path = "/",
-                        IsEssential = true,
-                        HttpOnly = false,
-                        Secure = false,
-                        Domain = config["Frontend:CookieDomain"]
-                    };
-                    response.Cookies.Append("authenticated", "false", cooptions);
                     await response.WriteAsync(JsonSerializer.Serialize(new ResponseWrapper<string>(WrResponseStatus.Unauthorized), jsonOptions));
                 }
             });

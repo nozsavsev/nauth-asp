@@ -54,6 +54,9 @@ namespace nauth_asp
         [JsonPropertyName("Forbidden")]
         Forbidden,
 
+        [JsonPropertyName("_2FARequired")]
+        _2FARequired,
+
         [JsonPropertyName("Unauthorized")]
         Unauthorized,
 

@@ -77,6 +77,8 @@ namespace nauth_asp.Services
                     throw new NauthException(WrResponseStatus.Unauthorized, "User ID mismatch");
                 }
 
+
+
                 if (session.ExpiresAt < DateTime.UtcNow)
                 {
                     throw new NauthException(WrResponseStatus.Unauthorized, "Session expired");
@@ -90,6 +92,16 @@ namespace nauth_asp.Services
                 if (session.user == null)
                 {
                     throw new NauthException(WrResponseStatus.NotFound, "User not found for session");
+                }
+
+                if (session.is2FAConfirmed == false && session.user._2FAEntries.Where(e => e.isActive).Count() > 0)
+                {
+                    throw new NauthException(WrResponseStatus._2FARequired, "User not found for session");
+                }
+
+                if (session.user.isEnabled == false)
+                {
+                    throw new NauthException(WrResponseStatus.RequireEnabledUser, "User not found for session");
                 }
 
                 return session;
