@@ -66,8 +66,6 @@ NNNNNNNN         NNNNNNNAAAAAAA                   AAAAAAA  UUUUUUUUU            
                     }
                 });
 
-            Console.WriteLine(builder.Configuration.GetConnectionString("DefaultConnection"));
-
             // Add DbContext
             builder.Services.AddDbContext<NauthDbContext>(options =>
                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -103,6 +101,7 @@ NNNNNNNN         NNNNNNNAAAAAAA                   AAAAAAA  UUUUUUUUU            
             builder.Services.AddScoped<ServiceService>();
             builder.Services.AddScoped<NauthService>();
             builder.Services.AddScoped<UserPermissionService>();
+            builder.Services.AddScoped<IUserRefreshService, UserRefreshService>();
 
             builder.Services.AddSignalR();
 
@@ -285,6 +284,17 @@ NNNNNNNN         NNNNNNNAAAAAAA                   AAAAAAA  UUUUUUUUU            
             }
 
             app.UseMiddleware<ErrorHandlerMiddleware>(jsonSerializerOptions);
+
+            app.Use(async (context, next) =>
+            {
+                await next.Invoke();
+
+                var userRefreshService = context.RequestServices.GetService<IUserRefreshService>();
+                if (userRefreshService != null)
+                {
+                    await userRefreshService.SendPendingRefreshesAsync();
+                }
+            });
 
             app.UseStatusCodePages(async context =>
             {

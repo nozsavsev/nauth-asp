@@ -11,7 +11,7 @@ using UAParser;
 
 namespace nauth_asp.Services
 {
-    public class SessionService(SessionRepository sessionRepository, IConfiguration config, IHttpContextAccessor httpContextAccessor, IHubContext<AuthHub> hubContext) : GenericService<DB_Session>(sessionRepository)
+    public class SessionService(SessionRepository sessionRepository, IConfiguration config, IHttpContextAccessor httpContextAccessor, IHubContext<AuthHub> hubContext, IUserRefreshService userRefreshService) : GenericService<DB_Session>(sessionRepository)
     {
 
         public async Task<string?> IssueSession(long userId, long? serviceId = null, DateTime? expiresAt = null)
@@ -114,7 +114,7 @@ namespace nauth_asp.Services
             var session = await sessionRepository.GetByIdAsync(Id);
             if (session == null) return;
             await hubContext.Clients.Group(Id.ToString()).SendAsync("Logout");
-            await hubContext.Clients.Group(session.userId.ToString()).SendAsync("RefreshData");
+            userRefreshService.QueueUserRefresh(session.userId);
             await sessionRepository.DeleteByIdAsync(Id);
         }
 

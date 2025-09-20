@@ -59,7 +59,6 @@ namespace nauth_asp.Services
 
                 var response = await _sesClient.SendEmailAsync(sendEmailRequest);
 
-
                 log.LogInformation("Sent email to {destination} with status code {statusCode}", destination, response.HttpStatusCode);
 
                 return response.HttpStatusCode == System.Net.HttpStatusCode.OK;

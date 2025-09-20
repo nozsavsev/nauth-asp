@@ -19,12 +19,13 @@ namespace nauth_asp.Services
         private readonly SessionService sessionService;
         private readonly IServiceProvider serviceProvider;
         private readonly IHubContext<AuthHub> _hubContext;
+        private readonly IUserRefreshService _userRefreshService;
         private readonly IObjectStorageService _objectStorageService;
         private readonly string _avatarBucketName;
         private readonly UserPermissionRepository _userPermissionRepository;
         private readonly IConfiguration _config;
 
-        public UserService(UserRepository _userRepository, UserPermissionRepository userPermissionRepository, SessionService _sessionService, IServiceProvider _serviceProvider, IHubContext<AuthHub> hubContext, IObjectStorageService objectStorageService, IConfiguration config) : base(_userRepository)
+        public UserService(UserRepository _userRepository, UserPermissionRepository userPermissionRepository, SessionService _sessionService, IServiceProvider _serviceProvider, IHubContext<AuthHub> hubContext, IObjectStorageService objectStorageService, IConfiguration config, IUserRefreshService userRefreshService) : base(_userRepository)
         {
             userRepository = _userRepository;
             sessionService = _sessionService;
@@ -34,6 +35,7 @@ namespace nauth_asp.Services
             _config = config;
             _avatarBucketName = config["Amazon:avatarBucketName"]!;
             _userPermissionRepository = userPermissionRepository;
+            _userRefreshService = userRefreshService;
         }
 
         public class UserAndToken
@@ -54,7 +56,7 @@ namespace nauth_asp.Services
             user.passwordHash = Argon2idHasher.Hash(password);
             await userRepository.UpdateAsync(user);
             await sessionService.RevokeAllSessions(userId, ignoreSessionId);
-            await _hubContext.Clients.Group(userId.ToString()).SendAsync("RefreshData");
+            _userRefreshService.QueueUserRefresh(userId);
             return true;
         }
 
@@ -88,7 +90,7 @@ namespace nauth_asp.Services
 
             if (token == null) throw new NauthException(WrResponseStatus.InternalError);
 
-            await _hubContext.Clients.Group(user.Id.ToString()).SendAsync("RefreshData");
+            _userRefreshService.QueueUserRefresh(user.Id);
 
             return new UserAndToken
             {
@@ -182,7 +184,7 @@ namespace nauth_asp.Services
 
                     await _repository.UpdateAsync(user);
 
-                    await _hubContext.Clients.Group(user.Id.ToString()).SendAsync("RefreshData");
+                    _userRefreshService.QueueUserRefresh(user.Id);
                 }
             }
 
@@ -246,7 +248,7 @@ namespace nauth_asp.Services
             {
                 user.isEmailVerified = true;
                 await userRepository.UpdateAsync(user);
-                await _hubContext.Clients.Group(id.ToString()).SendAsync("RefreshData");
+                _userRefreshService.QueueUserRefresh(id);
             }
         }
 
@@ -257,7 +259,7 @@ namespace nauth_asp.Services
             {
                 user.email = newEmail;
                 await userRepository.UpdateAsync(user);
-                await _hubContext.Clients.Group(id.ToString()).SendAsync("RefreshData");
+                _userRefreshService.QueueUserRefresh(id);
             }
         }
 
@@ -293,7 +295,7 @@ namespace nauth_asp.Services
 
             user.Name = name;
             var updatedUser = await userRepository.UpdateAsync(user);
-            await _hubContext.Clients.Group(userId.ToString()).SendAsync("RefreshData");
+            _userRefreshService.QueueUserRefresh(userId);
             return updatedUser;
         }
 
@@ -305,7 +307,7 @@ namespace nauth_asp.Services
 
             user.AvatarURL = avatarUrl;
             var updatedUser = await userRepository.UpdateAsync(user);
-            await _hubContext.Clients.Group(userId.ToString()).SendAsync("RefreshData");
+            _userRefreshService.QueueUserRefresh(userId);
             return updatedUser;
         }
 
@@ -328,7 +330,7 @@ namespace nauth_asp.Services
 
             }
             var updatedUser = await userRepository.GetByIdAsync(userId);
-            await _hubContext.Clients.Group(userId.ToString()).SendAsync("RefreshData");
+            _userRefreshService.QueueUserRefresh(userId);
             return updatedUser!;
         }
 
@@ -339,7 +341,7 @@ namespace nauth_asp.Services
             {
                 user.isEnabled = false;
                 await userRepository.UpdateAsync(user);
-                await _hubContext.Clients.Group(id.ToString()).SendAsync("RefreshData");
+                _userRefreshService.QueueUserRefresh(id);
             }
         }
 
@@ -350,7 +352,7 @@ namespace nauth_asp.Services
             {
                 user.isEmailVerified = false;
                 await userRepository.UpdateAsync(user);
-                await _hubContext.Clients.Group(id.ToString()).SendAsync("RefreshData");
+                _userRefreshService.QueueUserRefresh(id);
             }
         }
 
@@ -361,7 +363,7 @@ namespace nauth_asp.Services
             {
                 user.isEnabled = true;
                 await userRepository.UpdateAsync(user);
-                await _hubContext.Clients.Group(id.ToString()).SendAsync("RefreshData");
+                _userRefreshService.QueueUserRefresh(id);
             }
         }
 
