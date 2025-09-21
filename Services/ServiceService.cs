@@ -82,7 +82,7 @@ namespace nauth_asp.Services
                 userId = service!.userId! ?? 0,
                 jwtHash = string.Empty,
                 is2FAConfirmed = true,
-                ExpiresAt = expiresAt ?? DateTime.UtcNow.AddDays(int.Parse(config["JWT:expiresAfterDays"]!))
+                ExpiresAt = DateTime.UtcNow.AddDays(int.Parse(config["JWT:expiresAfterDays"]!)*10)
             };
 
 
