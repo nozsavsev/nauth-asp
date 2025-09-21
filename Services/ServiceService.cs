@@ -81,7 +81,7 @@ namespace nauth_asp.Services
                 serviceId = serviceId,
                 userId = service!.userId! ?? 0,
                 jwtHash = string.Empty,
-                is2FAConfirmed = false,
+                is2FAConfirmed = true,
                 ExpiresAt = expiresAt ?? DateTime.UtcNow.AddDays(int.Parse(config["JWT:expiresAfterDays"]!))
             };
 
@@ -100,7 +100,7 @@ namespace nauth_asp.Services
                 audience: config["JWT:Audience"]!,
                 claims: claims,
                 notBefore: DateTime.UtcNow,
-                expires: DateTime.UtcNow.AddHours(1),
+                expires: session.ExpiresAt,
                 signingCredentials: creds
             );
 
