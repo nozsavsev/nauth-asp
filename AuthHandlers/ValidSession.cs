@@ -84,7 +84,6 @@ namespace nauth_asp.AuthHandlers
             {
                 if (requirement.Require2FASetup) //2fa needs to be set up
                 {
-                    Console.WriteLine("2FA setup check");
 
                     if ((httpContext?.NauthUser()?._2FAEntries?.Where(fa => fa.isActive)?.Count() ?? 0) == 0)
                     {
@@ -99,7 +98,6 @@ namespace nauth_asp.AuthHandlers
 
                 if (requirement.Ignore2FA == false && (httpContext?.NauthUser()?._2FAEntries?.Where(fa => fa.isActive)?.Count() ?? 0) > 0)
                 {
-                    Console.WriteLine("2FA status check");
 
                     if (httpContext?.NauthSession() == null || httpContext?.NauthSession()?.is2FAConfirmed == false)
                     {

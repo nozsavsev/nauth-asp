@@ -16,6 +16,8 @@ namespace nauth_asp.Controllers
         [Route("currentService")]
         public async Task<ActionResult<ResponseWrapper<ServiceDTO>>> CurrentService()
         {
+            Console.WriteLine("Getting current service");
+
             try
             {
                 var result = await serviceService.GetByIdLoadedAsync(HttpContext.NauthService().Id!);
@@ -23,6 +25,7 @@ namespace nauth_asp.Controllers
             }
             catch (NauthException e)
             {
+                Console.WriteLine(e);
                 return BadRequest(new ResponseWrapper<FullSessionDTO>(e.Status));
             }
         }
@@ -31,6 +34,7 @@ namespace nauth_asp.Controllers
         [Route("decodeUserToken")]
         public async Task<ActionResult<ResponseWrapper<FullSessionDTO>>> DecodeUserToken(string token)
         {
+            Console.WriteLine("Decoding user token");
             try
             {
 
@@ -39,6 +43,7 @@ namespace nauth_asp.Controllers
             }
             catch (NauthException e)
             {
+                Console.WriteLine(e);
                 return BadRequest(new ResponseWrapper<FullSessionDTO>(e.Status));
             }
         }
@@ -53,15 +58,16 @@ namespace nauth_asp.Controllers
         [Authorize("ValidService")]
         public async Task<ActionResult<ResponseWrapper<PermissionDTO>>> CreateServicePermission(CreatePermissionDTO permission)
         {
+            Console.WriteLine("Creating service permission");
             try
             {
                 permission.ServiceId = HttpContext!.NauthService()!.Id!.ToString();
-
                 var result = await nauthService.CreatePermission(permission);
                 return Ok(new ResponseWrapper<PermissionDTO>(WrResponseStatus.Ok, mapper.Map<PermissionDTO>(result!)));
             }
             catch (NauthException e)
             {
+                Console.WriteLine(e);
                 return BadRequest(new ResponseWrapper<PermissionDTO>(e.Status));
             }
         }
@@ -71,6 +77,7 @@ namespace nauth_asp.Controllers
         [Authorize("ValidService")]
         public async Task<ActionResult<ResponseWrapper<string>>> DeleteServicePermission(string permissionId)
         {
+            Console.WriteLine("Deleting service permission");
             try
             {
                 if ((await _auth.AuthorizeAsync(User, long.Parse(permissionId), "SerivceOwnsPermission")).Succeeded == false)
@@ -83,6 +90,7 @@ namespace nauth_asp.Controllers
             }
             catch (NauthException e)
             {
+                Console.WriteLine(e);
                 return BadRequest(new ResponseWrapper<string>(e.Status));
             }
         }
@@ -91,6 +99,7 @@ namespace nauth_asp.Controllers
         [Route("UpdateUserPermissions")]
         public async Task<ActionResult<ResponseWrapper<string>>> GetAllServicePermissions(ServiceUpdateUserPermissionsDTO UpdateSet)
         {
+            Console.WriteLine("Updating user permissions");
             UpdateSet.permissions = UpdateSet.permissions.Where(p => _auth.AuthorizeAsync(User, p.PermissionId, "SerivceOwnsPermission").Result.Succeeded).ToList();
 
             try
@@ -100,6 +109,7 @@ namespace nauth_asp.Controllers
             }
             catch (NauthException e)
             {
+                Console.WriteLine(e);
                 return BadRequest(new ResponseWrapper<string>(e.Status));
             }
         }

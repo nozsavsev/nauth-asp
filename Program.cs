@@ -362,6 +362,7 @@ public class ErrorHandlerMiddleware
 
     public async Task Invoke(HttpContext context)
     {
+        Console.WriteLine("ErrorHandlerMiddleware on " + context.Request.Path);
         try
         {
             await _next(context);
@@ -397,5 +398,6 @@ public class ErrorHandlerMiddleware
             var result = JsonSerializer.Serialize(responseBody, _jsonSerializerOptions);
             await response.WriteAsync(result);
         }
+
     }
 }

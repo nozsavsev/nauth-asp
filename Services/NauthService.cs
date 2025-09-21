@@ -108,37 +108,73 @@ namespace nauth_asp.Services
             }
             catch (SecurityTokenException e)
             {
+                Console.WriteLine(e);
+                throw new NauthException(WrResponseStatus.Unauthorized, "Token validation failed", e);
+            }
+            catch (ArgumentException e)
+            {
+                Console.WriteLine(e);
+                throw new NauthException(WrResponseStatus.Unauthorized, "Token validation failed", e);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
                 throw new NauthException(WrResponseStatus.Unauthorized, "Token validation failed", e);
             }
         }
 
         public async Task<DB_Permission> CreatePermission(CreatePermissionDTO permission)
         {
-            return await permissionService.CreatePermission(permission);
+            try
+            {
+                return await permissionService.CreatePermission(permission);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+
         }
 
         public async Task DeletePermission(long permission)
         {
-            await permissionService.DeleteByidAsync(permission);
+            try
+            {
+
+                await permissionService.DeleteByidAsync(permission);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
         internal async Task UpdateUserPermissions(ServiceUpdateUserPermissionsDTO updateSet)
         {
+            try
+            {
+                var user = await userService.GetByIdAsync(long.Parse(updateSet.UserId));
 
-            var user = await userService.GetByIdAsync(long.Parse(updateSet.UserId));
+                if (user == null)
+                    throw new NauthException(WrResponseStatus.NotFound, "User not found");
 
-            if(user == null)
-                throw new NauthException(WrResponseStatus.NotFound, "User not found");
+                var permissionsList = user.permissions.Select(up => up.permissionId).ToList();
 
-            var permissionsList = user.permissions.Select(up => up.permissionId).ToList();
+                var toRemove = updateSet.permissions.Where(a => a.Action == ServiceUpdateUserPermissionsDTO.ServicePermissionOnUserUpdateDTOInner.RequestAction.Remove).Select(p => long.Parse(p.PermissionId!));
+                var tAdd = updateSet.permissions.Where(a => a.Action == ServiceUpdateUserPermissionsDTO.ServicePermissionOnUserUpdateDTOInner.RequestAction.Add).Select(p => long.Parse(p.PermissionId!));
 
-            var toRemove = updateSet.permissions.Where(a => a.Action == ServiceUpdateUserPermissionsDTO.ServicePermissionOnUserUpdateDTOInner.RequestAction.Remove).Select(p => long.Parse(p.PermissionId!));
-            var tAdd = updateSet.permissions.Where(a => a.Action == ServiceUpdateUserPermissionsDTO.ServicePermissionOnUserUpdateDTOInner.RequestAction.Add).Select(p => long.Parse(p.PermissionId!));
+                permissionsList.AddRange(tAdd);
+                permissionsList = permissionsList.Where(p => !toRemove.Contains(p)).ToList();
 
-            permissionsList.AddRange(tAdd);
-            permissionsList = permissionsList.Where(p => !toRemove.Contains(p)).ToList();
-
-            await userService.UpdatePermissions(user.Id, permissionsList);
+                await userService.UpdatePermissions(user.Id, permissionsList);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
     }
 }

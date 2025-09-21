@@ -82,7 +82,7 @@ namespace nauth_asp.Services
                 userId = service!.userId! ?? 0,
                 jwtHash = string.Empty,
                 is2FAConfirmed = true,
-                ExpiresAt = DateTime.UtcNow.AddDays(int.Parse(config["JWT:expiresAfterDays"]!)*10)
+                ExpiresAt = DateTime.UtcNow.AddDays(int.Parse(config["JWT:expiresAfterDays"]!) * 10)
             };
 
 
@@ -169,8 +169,8 @@ namespace nauth_asp.Services
                     .Include(s => s.user.permissions)
                     .Include(s => s.user.Services)
                     .Include(s => s.user._2FAEntries)
-                    
-                    
+
+
                     , false, true);
 
                 if (session == null)
@@ -208,7 +208,15 @@ namespace nauth_asp.Services
 
         public async Task<DB_Service?> GetByIdLoadedAsync(long id)
         {
-            return await _repository.DynamicQuerySingleAsync(q => q.Where(s => s.Id == id).Include(s => s.user).Include(s => s.permissions).Include(s => s.sessions), loadDependencies: false);
+            try
+            {
+                return await _repository.DynamicQuerySingleAsync(q => q.Where(s => s.Id == id).Include(s => s.user).Include(s => s.permissions).Include(s => s.sessions), loadDependencies: false);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            return null;
         }
     }
 }
