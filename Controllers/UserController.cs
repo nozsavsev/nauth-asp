@@ -27,6 +27,7 @@ namespace nauth_asp.Controllers
         public async Task<ActionResult<ResponseWrapper<UserDTO?>>> GetCurrentUser()
         {
             var user = HttpContext.NauthUser();
+            user.sessions = user.sessions.Where(s => s.serviceId == null).ToList();
             return Ok(new ResponseWrapper<UserDTO?>(WrResponseStatus.Ok, mapper.Map<UserDTO>(HttpContext.NauthUser())));
         }
 

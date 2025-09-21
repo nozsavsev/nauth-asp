@@ -47,7 +47,7 @@ namespace nauth_asp.Services
                 audience: config["JWT:Audience"]!,
                 claims: claims,
                 notBefore: DateTime.UtcNow,
-                expires: DateTime.UtcNow.AddHours(1),
+                expires: session.ExpiresAt,
                 signingCredentials: creds
             );
 
@@ -124,7 +124,7 @@ namespace nauth_asp.Services
 
             foreach (var session in sessions)
             {
-                if (session.Id != ignoreSessionId)
+                if (session.Id != ignoreSessionId && session.serviceId == null)
                 {
                     await RevokeSessionAsync(session.Id);
                 }
