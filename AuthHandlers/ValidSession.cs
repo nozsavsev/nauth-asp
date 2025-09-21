@@ -13,8 +13,9 @@ namespace nauth_asp.AuthHandlers
                bool ignore2FA = false,
                bool require2FASetup = false,
 
-               bool isServiceSession = false
+               bool isServiceSession = false,
 
+               bool allowServices = false
                )
         {
             RequireVerifiedEmail = requireVerifiedEmail;
@@ -22,6 +23,7 @@ namespace nauth_asp.AuthHandlers
             Ignore2FA = ignore2FA;
             Require2FASetup = require2FASetup;
             IsServiceSession = isServiceSession;
+            AllowServices = allowServices;
 
             if (IsServiceSession)
             {
@@ -29,6 +31,7 @@ namespace nauth_asp.AuthHandlers
                 Ignore2FA = false;
                 RequireEnabledUser = true;
                 RequireVerifiedEmail = true;
+                AllowServices = true;
             }
 
         }
@@ -38,6 +41,7 @@ namespace nauth_asp.AuthHandlers
         public bool Ignore2FA;
         public bool Require2FASetup;
         public bool IsServiceSession;
+        public bool AllowServices;
     }
 
 
@@ -63,6 +67,12 @@ namespace nauth_asp.AuthHandlers
                 return Task.CompletedTask;
             }
 
+            if(requirement.AllowServices == false && httpContext?.NauthSession()?.serviceId != null)
+            {
+                httpContext?.AddAuthenticationFailureReason(AuthFailureReasons.ForeginResource);
+                context.Fail(new AuthorizationFailureReason(this, "ServiceSessionNotAllowed"));
+                return Task.CompletedTask;
+            }
 
             if (requirement.Ignore2FA)
             {
