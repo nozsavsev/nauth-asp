@@ -63,12 +63,13 @@ namespace nauth_asp.AuthHandlers
             if (httpContext == null)
             {
                 context.Fail(new AuthorizationFailureReason(this, "HttpContextNull"));
-
+                Console.WriteLine("HttpContext is null");
                 return Task.CompletedTask;
             }
 
             if(requirement.AllowServices == false && httpContext?.NauthSession()?.serviceId != null)
             {
+                Console.WriteLine("Service sessions not allowed");
                 httpContext?.AddAuthenticationFailureReason(AuthFailureReasons.ForeginResource);
                 context.Fail(new AuthorizationFailureReason(this, "ServiceSessionNotAllowed"));
                 return Task.CompletedTask;
@@ -83,11 +84,11 @@ namespace nauth_asp.AuthHandlers
             {
                 if (requirement.Require2FASetup) //2fa needs to be set up
                 {
-                    Console.WriteLine("2FA setup enforcment");
+                    Console.WriteLine("2FA setup check");
 
                     if ((httpContext?.NauthUser()?._2FAEntries?.Where(fa => fa.isActive)?.Count() ?? 0) == 0)
                     {
-                        Console.WriteLine("2FA setup enforcment pushed");
+                        Console.WriteLine("2FA setup check failed");
 
 
                         context.Fail(new AuthorizationFailureReason(this, "Require2FASetup"));
@@ -98,12 +99,11 @@ namespace nauth_asp.AuthHandlers
 
                 if (requirement.Ignore2FA == false && (httpContext?.NauthUser()?._2FAEntries?.Where(fa => fa.isActive)?.Count() ?? 0) > 0)
                 {
-                    Console.WriteLine("2FA enforcment");
-
+                    Console.WriteLine("2FA status check");
 
                     if (httpContext?.NauthSession() == null || httpContext?.NauthSession()?.is2FAConfirmed == false)
                     {
-                        Console.WriteLine("2FA pushed");
+                        Console.WriteLine("2FA status failed");
 
 
                         context.Fail(new AuthorizationFailureReason(this, "_2FARequired"));
@@ -123,6 +123,7 @@ namespace nauth_asp.AuthHandlers
 
                 if ((httpContext?.NauthUser()?.isEmailVerified ?? false) == false)
                 {
+                    Console.WriteLine("Email verification check failed");
                     context.Fail(new AuthorizationFailureReason(this, "RequireVerifiedEmail"));
                     httpContext?.AddAuthenticationFailureReason(AuthFailureReasons.RequireVerifiedEmail);
                 }
@@ -134,6 +135,7 @@ namespace nauth_asp.AuthHandlers
 
                 if ((httpContext?.NauthUser()?.isEnabled ?? false) == false)
                 {
+                    Console.WriteLine("User enabled check failed");
                     context.Fail(new AuthorizationFailureReason(this, "RequireEnabledUser"));
                     httpContext?.AddAuthenticationFailureReason(AuthFailureReasons.RequireEnabledUser);
                 }

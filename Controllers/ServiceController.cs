@@ -57,6 +57,7 @@ namespace nauth_asp.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex);
                 return BadRequest(new ResponseWrapper<string>(WrResponseStatus.BadRequest));
 
             }
