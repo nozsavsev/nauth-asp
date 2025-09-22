@@ -36,6 +36,7 @@ namespace nauth_asp.DbContexts
                 entity.Navigation(e => e.Services).AutoInclude();
                 entity.Navigation(e => e.sessions).AutoInclude();
                 entity.Navigation(e => e.permissions).AutoInclude();
+                entity.Navigation("permissions.permission").AutoInclude();
                 entity.Navigation(e => e._2FAEntries).AutoInclude();
                 entity.Navigation(e => e.emailActions).AutoInclude();
             });
