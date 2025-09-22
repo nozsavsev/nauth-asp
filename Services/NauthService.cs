@@ -53,14 +53,14 @@ namespace nauth_asp.Services
                     throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons.SessionExpired);
 
                 var session = await sessionRepository.DynamicQuerySingleAsync(
-                    q => q.Include(s => s.user)
+                    q => 
+                    q.Where(s => s.Id == sessionId && s.userId == userId)
+                    .Include(s => s.user)
                     .Include(s => s.user.sessions)
                     .Include(s => s.user.emailActions)
                     .Include(s => s.user.permissions)
                     .Include(s => s.user.Services)
                     .Include(s => s.user._2FAEntries)
-
-
                     , false, true);
 
                 if (session == null)
@@ -131,7 +131,7 @@ namespace nauth_asp.Services
             }
         }
 
-        internal async Task UpdateUserPermissions(ServiceUpdateUserPermissionsDTO updateSet)
+        internal async Task<DB_Session> UpdateUserPermissions(ServiceUpdateUserPermissionsDTO updateSet)
         {
             try
             {
@@ -149,6 +149,18 @@ namespace nauth_asp.Services
                 permissionsList = permissionsList.Where(p => !toRemove.Contains(p)).ToList();
 
                 await userService.UpdatePermissions(user.Id, permissionsList);
+
+                var session = await sessionRepository.DynamicQuerySingleAsync(
+                   q =>
+                   q.Where(s => s.Id == long.Parse(updateSet.SessionId) && s.userId == long.Parse(updateSet.UserId))
+                   .Include(s => s.user)
+                   .Include(s => s.user.sessions)
+                   .Include(s => s.user.emailActions)
+                   .Include(s => s.user.permissions)
+                   .Include(s => s.user.Services)
+                   .Include(s => s.user._2FAEntries));
+                
+                return session;
             }
             catch (Exception e)
             {

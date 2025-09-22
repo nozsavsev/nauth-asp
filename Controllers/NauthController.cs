@@ -96,21 +96,21 @@ namespace nauth_asp.Controllers
         }
 
         [HttpPost]
-        [Route("UpdateUserPermissions")]
-        public async Task<ActionResult<ResponseWrapper<string>>> GetAllServicePermissions(ServiceUpdateUserPermissionsDTO UpdateSet)
+        [Route("updateUserPermissions")]
+        public async Task<ActionResult<ResponseWrapper<FullSessionDTO>>> UpdateUserPermissions(ServiceUpdateUserPermissionsDTO UpdateSet)
         {
             Console.WriteLine("Updating user permissions");
             UpdateSet.permissions = UpdateSet.permissions.Where(p => _auth.AuthorizeAsync(User, p.PermissionId, "SerivceOwnsPermission").Result.Succeeded).ToList();
 
             try
             {
-                await nauthService.UpdateUserPermissions(UpdateSet);
-                return Ok(new ResponseWrapper<string>(WrResponseStatus.Ok));
+                var fullSession = await nauthService.UpdateUserPermissions(UpdateSet);
+                return Ok(new ResponseWrapper<FullSessionDTO>(WrResponseStatus.Ok, mapper.Map<FullSessionDTO>(fullSession)));
             }
             catch (NauthException e)
             {
                 Console.WriteLine(e);
-                return BadRequest(new ResponseWrapper<string>(e));
+                return BadRequest(new ResponseWrapper<FullSessionDTO>(e));
             }
         }
     }

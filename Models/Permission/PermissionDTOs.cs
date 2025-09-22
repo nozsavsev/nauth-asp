@@ -41,9 +41,8 @@ namespace nauth_asp.Models
         }
 
 
-
-
         public string UserId { get; set; }
+        public string SessionId { get; set; }
 
         public List<ServicePermissionOnUserUpdateDTOInner> permissions { get; set; } = new();
 
