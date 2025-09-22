@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using nauth_asp.Exceptions;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace nauth_asp
@@ -101,6 +102,17 @@ namespace nauth_asp
 
             authenticationFailureReasons = AuthenticationFailureReasons;
         }
+
+        public ResponseWrapper(NauthException ex, [AllowNull] R response = null)
+        {
+            this.status = ex.Status;
+            this.response = response;
+            if (ex.Reason != null)
+            {
+                this.authenticationFailureReasons = new List<AuthFailureReasons> { ex.Reason ?? AuthFailureReasons.SessionExpired };
+            }   
+        }
+
         public ResponseWrapper(string status, [AllowNull] R response = null)
         {
             this.status = (WrResponseStatus)Enum.Parse(typeof(WrResponseStatus), status);

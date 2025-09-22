@@ -26,7 +26,7 @@ namespace nauth_asp.Controllers
             catch (NauthException e)
             {
                 Console.WriteLine(e);
-                return BadRequest(new ResponseWrapper<FullSessionDTO>(e.Status));
+                return BadRequest(new ResponseWrapper<FullSessionDTO>(e));
             }
         }
 
@@ -44,7 +44,7 @@ namespace nauth_asp.Controllers
             catch (NauthException e)
             {
                 Console.WriteLine(e);
-                return BadRequest(new ResponseWrapper<FullSessionDTO>(e.Status));
+                return BadRequest(new ResponseWrapper<FullSessionDTO>(e));
             }
         }
 
@@ -68,7 +68,7 @@ namespace nauth_asp.Controllers
             catch (NauthException e)
             {
                 Console.WriteLine(e);
-                return BadRequest(new ResponseWrapper<PermissionDTO>(e.Status));
+                return BadRequest(new ResponseWrapper<PermissionDTO>(e));
             }
         }
 
@@ -91,7 +91,7 @@ namespace nauth_asp.Controllers
             catch (NauthException e)
             {
                 Console.WriteLine(e);
-                return BadRequest(new ResponseWrapper<string>(e.Status));
+                return BadRequest(new ResponseWrapper<string>(e ));
             }
         }
 
@@ -110,7 +110,7 @@ namespace nauth_asp.Controllers
             catch (NauthException e)
             {
                 Console.WriteLine(e);
-                return BadRequest(new ResponseWrapper<string>(e.Status));
+                return BadRequest(new ResponseWrapper<string>(e));
             }
         }
     }

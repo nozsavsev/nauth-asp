@@ -44,17 +44,13 @@ namespace nauth_asp.Services
                 var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
 
                 if (validatedToken is not JwtSecurityToken)
-                {
                     throw new NauthException(WrResponseStatus.Unauthorized, "Invalid token type");
-                }
 
                 var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 var sessionIdClaim = principal.FindFirst("sid")?.Value;
 
                 if (!long.TryParse(userIdClaim, out var userId) || !long.TryParse(sessionIdClaim, out var sessionId))
-                {
-                    throw new NauthException(WrResponseStatus.Unauthorized, "Invalid claims");
-                }
+                    throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons.SessionExpired);
 
                 var session = await sessionRepository.DynamicQuerySingleAsync(
                     q => q.Include(s => s.user)
@@ -68,58 +64,43 @@ namespace nauth_asp.Services
                     , false, true);
 
                 if (session == null)
-                {
-                    throw new NauthException(WrResponseStatus.NotFound, "Session not found");
-                }
+                    throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons.SessionExpired);
 
                 if (session.userId != userId)
-                {
-                    throw new NauthException(WrResponseStatus.Unauthorized, "User ID mismatch");
-                }
-
-
+                    throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons.SessionExpired);
 
                 if (session.ExpiresAt < DateTime.UtcNow)
-                {
-                    throw new NauthException(WrResponseStatus.Unauthorized, "Session expired");
-                }
-
+                    throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons.SessionExpired);
+                
                 if (session.jwtHash != SHA256.Compute(token))
-                {
-                    throw new NauthException(WrResponseStatus.Unauthorized, "Invalid token hash");
-                }
+                    throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons.SessionExpired);
 
                 if (session.user == null)
-                {
-                    throw new NauthException(WrResponseStatus.NotFound, "User not found for session");
-                }
+                    throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons.SessionExpired);
 
                 if (session.is2FAConfirmed == false && session.user._2FAEntries.Where(e => e.isActive).Count() > 0)
-                {
-                    throw new NauthException(WrResponseStatus._2FARequired, "User not found for session");
-                }
+                    throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons._2FARequired);
 
                 if (session.user.isEnabled == false)
-                {
-                    throw new NauthException(WrResponseStatus.RequireEnabledUser, "User not found for session");
-                }
+                    throw new NauthException(WrResponseStatus.RequireEnabledUser);
 
                 return session;
             }
             catch (SecurityTokenException e)
             {
                 Console.WriteLine(e);
-                throw new NauthException(WrResponseStatus.Unauthorized, "Token validation failed", e);
+                throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons.SessionExpired);
             }
             catch (ArgumentException e)
             {
                 Console.WriteLine(e);
-                throw new NauthException(WrResponseStatus.Unauthorized, "Token validation failed", e);
+                throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons.SessionExpired);
+
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                throw new NauthException(WrResponseStatus.Unauthorized, "Token validation failed", e);
+                throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons.SessionExpired);
             }
         }
 
@@ -141,7 +122,6 @@ namespace nauth_asp.Services
         {
             try
             {
-
                 await permissionService.DeleteByidAsync(permission);
             }
             catch (Exception e)
