@@ -158,7 +158,7 @@ namespace nauth_asp.Services
                    .Include(s => s.user.emailActions)
                    .Include(s => s.user.permissions)
                    .Include(s => s.user.Services)
-                   .Include(s => s.user._2FAEntries));
+                   .Include(s => s.user._2FAEntries), false, true);
                 
                 return session;
             }

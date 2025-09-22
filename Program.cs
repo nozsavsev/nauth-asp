@@ -266,6 +266,7 @@ NNNNNNNN         NNNNNNNAAAAAAA                   AAAAAAA  UUUUUUUUU            
                 options.AddPolicy("UserOwnsService", p => p.Requirements.Add(new UserOwnsServiceRequirement()));
                 options.AddPolicy("UserOwnsSession", p => p.Requirements.Add(new UserOwnsSessionRequirement()));
                 options.AddPolicy("UserOwnsEmailAction", p => p.Requirements.Add(new UserOwnsEmailActionRequirement()));
+                options.AddPolicy("ServiceOwnsPermission", p => p.Requirements.Add(new ServiceOwnsPermissionRequirement()));
 
             });
 
@@ -273,6 +274,7 @@ NNNNNNNN         NNNNNNNAAAAAAA                   AAAAAAA  UUUUUUUUU            
             builder.Services.AddScoped<IAuthorizationHandler, UserOwnsServiceHandler>();
             builder.Services.AddScoped<IAuthorizationHandler, UserOwnsSessionHandler>();
             builder.Services.AddScoped<IAuthorizationHandler, UserOwnsEmailActionHandler>();
+            builder.Services.AddScoped<IAuthorizationHandler, ServiceOwnsPermissionHandler>();
             var app = builder.Build();
 
             app.UseCors(myAllowSpecificOrigins);
@@ -362,7 +364,7 @@ public class ErrorHandlerMiddleware
 
     public async Task Invoke(HttpContext context)
     {
-        Console.WriteLine("ErrorHandlerMiddleware on " + context.Request.Path);
+        Console.WriteLine(context.Request.Path);
         try
         {
             await _next(context);

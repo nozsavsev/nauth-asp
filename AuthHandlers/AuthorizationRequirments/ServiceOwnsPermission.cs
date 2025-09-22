@@ -3,13 +3,13 @@ using nauth_asp.Repositories;
 
 namespace nauth_asp.AuthHandlers.AuthorizationRequirments
 {
-    public sealed class SerivceOwnsPermissionRequirement : IAuthorizationRequirement { }
+    public sealed class ServiceOwnsPermissionRequirement : IAuthorizationRequirement { }
 
-    public sealed class SerivceOwnsPermissionHandler(PermissionRepository permissionRepository, IHttpContextAccessor HttpContextAccessor) : AuthorizationHandler<SerivceOwnsPermissionRequirement, long>
+    public sealed class ServiceOwnsPermissionHandler(PermissionRepository permissionRepository, IHttpContextAccessor HttpContextAccessor) : AuthorizationHandler<ServiceOwnsPermissionRequirement, long>
     {
         protected override async Task HandleRequirementAsync(
           AuthorizationHandlerContext context,
-          SerivceOwnsPermissionRequirement requirement,
+          ServiceOwnsPermissionRequirement requirement,
           long permissionId)
         {
             var sub = context.User.FindFirst("serviceId")?.Value;

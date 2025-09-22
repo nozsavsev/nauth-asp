@@ -80,7 +80,7 @@ namespace nauth_asp.Controllers
             Console.WriteLine("Deleting service permission");
             try
             {
-                if ((await _auth.AuthorizeAsync(User, long.Parse(permissionId), "SerivceOwnsPermission")).Succeeded == false)
+                if ((await _auth.AuthorizeAsync(User, long.Parse(permissionId), "ServiceOwnsPermission")).Succeeded == false)
                 {
                     return Forbid();
                 }
@@ -100,7 +100,9 @@ namespace nauth_asp.Controllers
         public async Task<ActionResult<ResponseWrapper<FullSessionDTO>>> UpdateUserPermissions(ServiceUpdateUserPermissionsDTO UpdateSet)
         {
             Console.WriteLine("Updating user permissions");
-            UpdateSet.permissions = UpdateSet.permissions.Where(p => _auth.AuthorizeAsync(User, p.PermissionId, "SerivceOwnsPermission").Result.Succeeded).ToList();
+            UpdateSet.permissions = UpdateSet.permissions.Where(p => 
+            _auth.AuthorizeAsync(User, long.Parse(p.PermissionId), "ServiceOwnsPermission").Result.Succeeded
+            ).ToList();
 
             try
             {
