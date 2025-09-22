@@ -10,7 +10,7 @@ namespace nauth_asp.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize("ValidService")]
-    public class NauthController(NauthService nauthService, ServiceService serviceService, IAuthorizationService _auth, IMapper mapper) : ControllerBase
+    public class NauthController(NauthService nauthService, UserService userService, ServiceService serviceService, IAuthorizationService _auth, IMapper mapper) : ControllerBase
     {
         [HttpGet]
         [Route("currentService")]
@@ -49,9 +49,29 @@ namespace nauth_asp.Controllers
         }
 
 
+        [HttpPost]
+        [Route("fetchUsers")]
+        public async Task<ActionResult<ResponseWrapper<List<UserDTO>>>> FetchUsers(string? match, int skip = 0, int take = 20)
+        {
+            var users = await userService.AdminGetUsers(match, skip, take);
+            return Ok(new ResponseWrapper<List<UserDTO>>(WrResponseStatus.Ok, mapper.Map<List<UserDTO>>(users)));
+        }
 
+        [HttpPost]
+        [Route("getUserById")]
+        public async Task<ActionResult<ResponseWrapper<UserDTO>>> GetUserById(string userId)
+        {
+            var users = await userService.GetByIdAsync(long.Parse(userId));
+            return Ok(new ResponseWrapper<UserDTO>(WrResponseStatus.Ok, mapper.Map<UserDTO>(users)));
+        }
 
-
+        [HttpPost]
+        [Route("getUserBySessionId")]
+        public async Task<ActionResult<ResponseWrapper<FullSessionDTO>>> GetUserBySessionId(string sessionId)
+        {
+            var users = await nauthService.GetBySessionIdAsync(long.Parse(sessionId));
+            return Ok(new ResponseWrapper<FullSessionDTO>(WrResponseStatus.Ok, mapper.Map<FullSessionDTO>(users)));
+        }
 
         [HttpPost]
         [Route("createServicePermission")]

@@ -16,9 +16,7 @@ namespace nauth_asp.Services
     IConfiguration config,
     SessionRepository sessionRepository,
     UserService userService,
-    ServiceService serviceService,
-    PermissionService permissionService,
-    UserPermissionService userPermissionService
+    PermissionService permissionService
     )
     {
 
@@ -53,7 +51,7 @@ namespace nauth_asp.Services
                     throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons.SessionExpired);
 
                 var session = await sessionRepository.DynamicQuerySingleAsync(
-                    q => 
+                    q =>
                     q.Where(s => s.Id == sessionId && s.userId == userId)
                     .Include(s => s.user)
                     .Include(s => s.user.sessions)
@@ -71,7 +69,7 @@ namespace nauth_asp.Services
 
                 if (session.ExpiresAt < DateTime.UtcNow)
                     throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons.SessionExpired);
-                
+
                 if (session.jwtHash != SHA256.Compute(token))
                     throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons.SessionExpired);
 
@@ -131,7 +129,7 @@ namespace nauth_asp.Services
             }
         }
 
-        internal async Task<DB_Session> UpdateUserPermissions(ServiceUpdateUserPermissionsDTO updateSet)
+        public async Task<DB_Session> UpdateUserPermissions(ServiceUpdateUserPermissionsDTO updateSet)
         {
             try
             {
@@ -159,7 +157,7 @@ namespace nauth_asp.Services
                    .Include(s => s.user.permissions)
                    .Include(s => s.user.Services)
                    .Include(s => s.user._2FAEntries), false, true);
-                
+
                 return session;
             }
             catch (Exception e)
@@ -167,6 +165,21 @@ namespace nauth_asp.Services
                 Console.WriteLine(e);
                 throw;
             }
+        }
+
+        public async Task<DB_Session?> GetBySessionIdAsync(long sessionId)
+        {
+            var session = await sessionRepository.DynamicQuerySingleAsync(
+                                                  q =>
+                                                  q.Where(s => s.Id == sessionId)
+                                                  .Include(s => s.user)
+                                                  .Include(s => s.user.sessions)
+                                                  .Include(s => s.user.emailActions)
+                                                  .Include(s => s.user.permissions)
+                                                  .Include(s => s.user.Services)
+                                                  .Include(s => s.user._2FAEntries), false, true);
+
+            return session;
         }
     }
 }
