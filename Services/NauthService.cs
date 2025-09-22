@@ -1,3 +1,6 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -5,22 +8,16 @@ using nauth_asp.Exceptions;
 using nauth_asp.Helpers;
 using nauth_asp.Models;
 using nauth_asp.Repositories;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace nauth_asp.Services
 {
     public class NauthService(
-
-    IConfiguration config,
-    SessionRepository sessionRepository,
-    UserService userService,
-    PermissionService permissionService
+        IConfiguration config,
+        SessionRepository sessionRepository,
+        UserService userService,
+        PermissionService permissionService
     )
     {
-
-
         public async Task<DB_Session> DecodeAndVerifyUserAuthToken(string token)
         {
             try
@@ -36,10 +33,14 @@ namespace nauth_asp.Services
                     ValidIssuer = config["JWT:Issuer"],
                     ValidAudience = config["JWT:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ClockSkew = TimeSpan.Zero
+                    ClockSkew = TimeSpan.Zero,
                 };
 
-                var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
+                var principal = tokenHandler.ValidateToken(
+                    token,
+                    validationParameters,
+                    out var validatedToken
+                );
 
                 if (validatedToken is not JwtSecurityToken)
                     throw new NauthException(WrResponseStatus.Unauthorized, "Invalid token type");
@@ -47,37 +48,66 @@ namespace nauth_asp.Services
                 var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 var sessionIdClaim = principal.FindFirst("sid")?.Value;
 
-                if (!long.TryParse(userIdClaim, out var userId) || !long.TryParse(sessionIdClaim, out var sessionId))
-                    throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons.SessionExpired);
+                if (
+                    !long.TryParse(userIdClaim, out var userId)
+                    || !long.TryParse(sessionIdClaim, out var sessionId)
+                )
+                    throw new NauthException(
+                        WrResponseStatus.BadRequest,
+                        AuthFailureReasons.SessionExpired
+                    );
 
                 var session = await sessionRepository.DynamicQuerySingleAsync(
                     q =>
-                    q.Where(s => s.Id == sessionId && s.userId == userId)
-                    .Include(s => s.user)
-                    .Include(s => s.user.sessions)
-                    .Include(s => s.user.emailActions)
-                    .Include(s => s.user.permissions)
-                    .Include(s => s.user.Services)
-                    .Include(s => s.user._2FAEntries)
-                    , false, true);
+                        q.Where(s => s.Id == sessionId && s.userId == userId)
+                            .Include(s => s.user)
+                            .Include(s => s.user.sessions)
+                            .Include(s => s.user.emailActions)
+                            .Include(s => s.user.permissions)
+                            .Include(s => s.user.Services)
+                            .Include(s => s.user._2FAEntries),
+                    true,
+                    true
+                );
 
                 if (session == null)
-                    throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons.SessionExpired);
+                    throw new NauthException(
+                        WrResponseStatus.BadRequest,
+                        AuthFailureReasons.SessionExpired
+                    );
 
                 if (session.userId != userId)
-                    throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons.SessionExpired);
+                    throw new NauthException(
+                        WrResponseStatus.BadRequest,
+                        AuthFailureReasons.SessionExpired
+                    );
 
                 if (session.ExpiresAt < DateTime.UtcNow)
-                    throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons.SessionExpired);
+                    throw new NauthException(
+                        WrResponseStatus.BadRequest,
+                        AuthFailureReasons.SessionExpired
+                    );
 
                 if (session.jwtHash != SHA256.Compute(token))
-                    throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons.SessionExpired);
+                    throw new NauthException(
+                        WrResponseStatus.BadRequest,
+                        AuthFailureReasons.SessionExpired
+                    );
 
                 if (session.user == null)
-                    throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons.SessionExpired);
+                    throw new NauthException(
+                        WrResponseStatus.BadRequest,
+                        AuthFailureReasons.SessionExpired
+                    );
 
-                if (session.is2FAConfirmed == false && session.user._2FAEntries.Where(e => e.isActive).Count() > 0)
-                    throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons._2FARequired);
+                if (
+                    session.is2FAConfirmed == false
+                    && session.user._2FAEntries.Where(e => e.isActive).Count() > 0
+                )
+                    throw new NauthException(
+                        WrResponseStatus.BadRequest,
+                        AuthFailureReasons._2FARequired
+                    );
 
                 if (session.user.isEnabled == false)
                     throw new NauthException(WrResponseStatus.RequireEnabledUser);
@@ -87,18 +117,26 @@ namespace nauth_asp.Services
             catch (SecurityTokenException e)
             {
                 Console.WriteLine(e);
-                throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons.SessionExpired);
+                throw new NauthException(
+                    WrResponseStatus.BadRequest,
+                    AuthFailureReasons.SessionExpired
+                );
             }
             catch (ArgumentException e)
             {
                 Console.WriteLine(e);
-                throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons.SessionExpired);
-
+                throw new NauthException(
+                    WrResponseStatus.BadRequest,
+                    AuthFailureReasons.SessionExpired
+                );
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                throw new NauthException(WrResponseStatus.BadRequest, AuthFailureReasons.SessionExpired);
+                throw new NauthException(
+                    WrResponseStatus.BadRequest,
+                    AuthFailureReasons.SessionExpired
+                );
             }
         }
 
@@ -113,7 +151,6 @@ namespace nauth_asp.Services
                 Console.WriteLine(e);
                 throw;
             }
-
         }
 
         public async Task DeletePermission(long permission)
@@ -129,7 +166,9 @@ namespace nauth_asp.Services
             }
         }
 
-        public async Task<DB_Session> UpdateUserPermissions(ServiceUpdateUserPermissionsDTO updateSet)
+        public async Task<DB_Session> UpdateUserPermissions(
+            ServiceUpdateUserPermissionsDTO updateSet
+        )
         {
             try
             {
@@ -140,8 +179,24 @@ namespace nauth_asp.Services
 
                 var permissionsList = user.permissions.Select(up => up.permissionId).ToList();
 
-                var toRemove = updateSet.permissions.Where(a => a.Action == ServiceUpdateUserPermissionsDTO.ServicePermissionOnUserUpdateDTOInner.RequestAction.Remove).Select(p => long.Parse(p.PermissionId!));
-                var tAdd = updateSet.permissions.Where(a => a.Action == ServiceUpdateUserPermissionsDTO.ServicePermissionOnUserUpdateDTOInner.RequestAction.Add).Select(p => long.Parse(p.PermissionId!));
+                var toRemove = updateSet
+                    .permissions.Where(a =>
+                        a.Action
+                        == ServiceUpdateUserPermissionsDTO
+                            .ServicePermissionOnUserUpdateDTOInner
+                            .RequestAction
+                            .Remove
+                    )
+                    .Select(p => long.Parse(p.PermissionId!));
+                var tAdd = updateSet
+                    .permissions.Where(a =>
+                        a.Action
+                        == ServiceUpdateUserPermissionsDTO
+                            .ServicePermissionOnUserUpdateDTOInner
+                            .RequestAction
+                            .Add
+                    )
+                    .Select(p => long.Parse(p.PermissionId!));
 
                 permissionsList.AddRange(tAdd);
                 permissionsList = permissionsList.Where(p => !toRemove.Contains(p)).ToList();
@@ -149,14 +204,20 @@ namespace nauth_asp.Services
                 await userService.UpdatePermissions(user.Id, permissionsList);
 
                 var session = await sessionRepository.DynamicQuerySingleAsync(
-                   q =>
-                   q.Where(s => s.Id == long.Parse(updateSet.SessionId) && s.userId == long.Parse(updateSet.UserId))
-                   .Include(s => s.user)
-                   .Include(s => s.user.sessions)
-                   .Include(s => s.user.emailActions)
-                   .Include(s => s.user.permissions)
-                   .Include(s => s.user.Services)
-                   .Include(s => s.user._2FAEntries), false, true);
+                    q =>
+                        q.Where(s =>
+                                s.Id == long.Parse(updateSet.SessionId)
+                                && s.userId == long.Parse(updateSet.UserId)
+                            )
+                            .Include(s => s.user)
+                            .Include(s => s.user.sessions)
+                            .Include(s => s.user.emailActions)
+                            .Include(s => s.user.permissions)
+                            .Include(s => s.user.Services)
+                            .Include(s => s.user._2FAEntries),
+                    true,
+                    true
+                );
 
                 return session;
             }
@@ -170,14 +231,17 @@ namespace nauth_asp.Services
         public async Task<DB_Session?> GetBySessionIdAsync(long sessionId)
         {
             var session = await sessionRepository.DynamicQuerySingleAsync(
-                                                  q =>
-                                                  q.Where(s => s.Id == sessionId)
-                                                  .Include(s => s.user)
-                                                  .Include(s => s.user.sessions)
-                                                  .Include(s => s.user.emailActions)
-                                                  .Include(s => s.user.permissions)
-                                                  .Include(s => s.user.Services)
-                                                  .Include(s => s.user._2FAEntries), false, true);
+                q =>
+                    q.Where(s => s.Id == sessionId)
+                        .Include(s => s.user)
+                        .Include(s => s.user.sessions)
+                        .Include(s => s.user.emailActions)
+                        .Include(s => s.user.permissions)
+                        .Include(s => s.user.Services)
+                        .Include(s => s.user._2FAEntries),
+                true,
+                true
+            );
 
             return session;
         }
